@@ -1,0 +1,228 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Commandline interface [bdsd-cli] &#8212; bobaos  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Nodejs apps [bdsd.client]" href="bdsd.client.html" />
+    <link rel="prev" title="Launch daemon [bdsd.sock]" href="bdsd.sock.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="commandline-interface-bdsd-cli">
+<span id="commandline-interface-bdsd-cli"></span><h1>Commandline interface [bdsd-cli]<a class="headerlink" href="#commandline-interface-bdsd-cli" title="Permalink to this headline">¶</a></h1>
+<p>Commad-line interface for Bobaos Datapoint Sdk.</p>
+<div class="section" id="installation">
+<span id="installation"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>First, you need to install and run as a service <a class="reference external" href="./bdsd.sock.html">bdsd.sock</a></p>
+<p>If it is already done, proceed to next steps:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ sudo npm install -g bdsd-cli
+</pre></div>
+</div>
+</div>
+<div class="section" id="usage">
+<span id="usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<ol class="simple">
+<li>Start the application</li>
+</ol>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>$ bdsd-cli
+connected
+bobaos&gt;
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">bdsd-cli</span></code> accepts <code class="docutils literal notranslate"><span class="pre">-s,</span> <span class="pre">--sockfile</span></code> parameter with path to bdsd.sock. Default is <code class="docutils literal notranslate"><span class="pre">$XDG_RUNTIME_DIR/bdsd.sock</span></code>.</p>
+<ol class="simple">
+<li>Get command list</li>
+</ol>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>bobaos&gt; <span class="nb">help</span>
+  Commands:
+
+      <span class="nb">help</span> <span class="o">[</span>command...<span class="o">]</span>              Provides <span class="nb">help</span> <span class="k">for</span> a given command.
+      <span class="nb">exit</span>                           Exits application.
+      getDatapoints                  Get all datapoint descriptions
+      getDescription <span class="o">[</span>options<span class="o">]</span>       Get datapoint description
+      getValue <span class="o">[</span>options<span class="o">]</span>             Get datapoint value
+      readValue <span class="o">[</span>options<span class="o">]</span>            Send <span class="nb">read</span> request to bus
+      setValue <span class="o">[</span>options<span class="o">]</span>             Set datapoint value
+      setProgrammingMode <span class="o">[</span>options<span class="o">]</span>   Set programming mode
+      getStoredValue <span class="o">[</span>options<span class="o">]</span>       Get stored datapoint value from bdsd.sock
+      readValues <span class="o">[</span>options<span class="o">]</span>           Send <span class="nb">read</span> request to bus <span class="k">for</span> multiple values
+      setValues <span class="o">[</span>options<span class="o">]</span>            Send <span class="nb">read</span> request to bus <span class="k">for</span> multiple numerical/bool values
+      watch <span class="o">[</span>options<span class="o">]</span>                Highlight datapoint in log
+      unwatch <span class="o">[</span>options<span class="o">]</span>              Remove datapoint value hightlight
+</pre></div>
+</div>
+<ol class="simple">
+<li>Try commands:</li>
+</ol>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>bobaos&gt; setProgrammingMode -v <span class="m">1</span>
+Set programming mode: success
+bobaos&gt; setProgrammingMode -v <span class="m">0</span>
+Set programming mode: <span class="m">1</span>
+bobaos&gt; getDatapoints
+<span class="o">[</span> <span class="o">{</span> id: <span class="m">1</span>,
+    length: <span class="m">2</span>,
+    flags:
+    <span class="o">{</span> priority: <span class="s1">&#39;low&#39;</span>,
+      communication: true,
+      read: true,
+      write: true,
+      readOnInit: false,
+      transmit: true,
+      update: <span class="nb">false</span> <span class="o">}</span>,
+      dpt: <span class="s1">&#39;dpt9&#39;</span> <span class="o">}</span>,
+  <span class="o">{</span> id: <span class="m">2</span>,
+    length: <span class="m">1</span>,
+    flags:
+    <span class="o">{</span> priority: <span class="s1">&#39;low&#39;</span>,
+      communication: true,
+      read: false,
+      write: true,
+      readOnInit: false,
+      transmit: true,
+      update: <span class="nb">false</span> <span class="o">}</span>,
+      dpt: <span class="s1">&#39;dpt5&#39;</span> <span class="o">}</span> <span class="o">]</span>
+bobaos&gt; getValue -s <span class="m">1</span>
+<span class="m">14</span>:01:35:504,    id: <span class="m">1</span>, value: <span class="m">22</span>, raw: <span class="o">[</span><span class="m">12</span>,76<span class="o">]</span>
+bobaos&gt; setValue -s <span class="m">2</span> -v <span class="m">0</span>
+bobaos&gt; readValue -s <span class="m">1</span>
+bobaos&gt; readValue -s <span class="m">2</span>
+<span class="m">14</span>:01:56:106,    id: <span class="m">2</span>, value: <span class="m">0</span>, raw: <span class="o">[</span><span class="m">0</span><span class="o">]</span>
+bobaos&gt; getDescription -s <span class="m">1</span>
+<span class="o">{</span> id: <span class="m">1</span>,
+  value:
+  <span class="o">{</span> id: <span class="m">1</span>,
+    dpt: <span class="s1">&#39;dpt9&#39;</span>,
+    flags:
+    <span class="o">{</span> priority: <span class="s1">&#39;low&#39;</span>,
+      communication: true,
+      read: true,
+      write: true,
+      readOnInit: false,
+      transmit: true,
+      update: <span class="nb">false</span> <span class="o">}</span>,
+      length: <span class="m">2</span> <span class="o">}</span> <span class="o">}</span>
+bobaos&gt; getStoredValue -s <span class="m">1</span>
+<span class="m">14</span>:02:25:748,    id: <span class="m">1</span>, value: <span class="m">21</span>.9, raw: <span class="o">[</span><span class="m">12</span>,71<span class="o">]</span>
+bobaos&gt; readValues -s <span class="s2">&quot;1, 2, 3&quot;</span>
+<span class="m">14</span>:02:44:399,    id: <span class="m">1</span>, value: <span class="m">21</span>.9, raw: <span class="o">[</span><span class="m">12</span>,71<span class="o">]</span>
+<span class="m">14</span>:02:44:483,    id: <span class="m">2</span>, value: <span class="m">0</span>, raw: <span class="o">[</span><span class="m">0</span><span class="o">]</span>
+<span class="m">14</span>:02:44:607,    id: <span class="m">3</span>, value: <span class="m">0</span>, raw: <span class="o">[</span><span class="m">0</span><span class="o">]</span>
+bobaos&gt; setValues -s <span class="s2">&quot;3:0, 4:0, 5:1&quot;</span>
+bobaos&gt;
+</pre></div>
+</div>
+<p>Added in 2.0.10:</p>
+<ul class="simple">
+<li>Datapoint value hightlight:</li>
+</ul>
+<p><img alt="screenshot" src="_images/colors.png" /></p>
+<ul class="simple">
+<li>DBAD license</li>
+</ul>
+</div>
+<div class="section" id="support-me">
+<span id="support-me"></span><h2>Support me<a class="headerlink" href="#support-me" title="Permalink to this headline">¶</a></h2>
+<p>You can send me a beer by PayPal</p>
+<p><a class="reference external" href="https://paypal.me/shabunin"><img alt="" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" /></a></p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">bobaos</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bobaos.html">Get started [bobaos]</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bdsd.sock.html">Launch daemon [bdsd.sock]</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Commandline interface [bdsd-cli]</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-me">Support me</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bdsd.client.html">Nodejs apps [bdsd.client]</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bdsm.html">IPC [bdsm]</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="bdsd.sock.html" title="previous chapter">Launch daemon [bdsd.sock]</a></li>
+      <li>Next: <a href="bdsd.client.html" title="next chapter">Nodejs apps [bdsd.client]</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Vladimir Shabunin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/bdsd-cli.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
