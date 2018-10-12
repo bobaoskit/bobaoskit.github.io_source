@@ -11,13 +11,7 @@ Welcome to bobaos's documentation!
    :caption: Contents:
 
    intro
-   bobaos
-   bdsd.sock
-   bdsd-cli
-   bdsd.client
-   bdsm
-
-
+   quickstart
 
 Indices and tables
 ==================

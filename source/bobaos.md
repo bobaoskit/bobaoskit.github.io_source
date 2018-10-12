@@ -290,9 +290,3 @@ Response example:
 [My presentation at TADHack 2017](https://www.youtube.com/watch?v=vBXVysVJymc)
 
 [Apple HomeKit integration](https://www.youtube.com/watch?v=6K-xG2r9YwI)
-
-## Support me
-
-You can send me a beer by PayPal
-
-[![](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/shabunin)
