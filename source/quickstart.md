@@ -131,7 +131,7 @@ sudo npm i -g myps.logviewer
 ```
 
 ```
-myps.logviewer -c bobaos_logs
+myps-logviewer -c bobaos_logs
 ```
 
 If bobaos.pub package is not installed and started yet then there will be only one word in console output: **connected**.
