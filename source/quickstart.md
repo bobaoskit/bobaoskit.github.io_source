@@ -39,102 +39,29 @@ After reboot proceed to next steps.
 sudo reboot
 ```
 
-## myps.broker
+## Node.js
 
-Bobaos.Kit communicates over publish/subscribe service, implemented in nodejs: myps(MyPubSub). So, install it at first and create a service.
+Install [nodejs](https://nodejs.org)
 
-```
-sudo npm i -g myps.broker
-```
-
-Create service for systemd:
-
-```
-sudo nano /etc/systemd/system/myps.service
+```text
+curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+sudo apt-get install -y nodejs
 ```
 
-Add following content:
+[More info](https://github.com/nodesource/distributions/blob/master/README.md)
 
-```
-[Unit]
-Description=PubSub service running on nodejs
+## Redis
 
-[Service]
-User=pi
-ExecStart=/usr/bin/env myps-broker
-Restart=on-failure
-RestartSec=10
-RuntimeDirectory=myps
-RuntimeDirectoryMode=0775
-# and now working dir.
-# make sure it is located at `/run/${RuntimeDirectory}`
-# which is in this example myps
-WorkingDirectory=/run/myps
+bobaos.pub broadcasts events over publish/subscribe and uses queues backed by [Redis](https://redis.io/). So, install it at first and start service.
 
-[Install]
-WantedBy=multi-user.target
-```
-
-Service file contains **RuntimeDirectory** and **WorkingDirectory** config values, so with this service file, socket file **myipc.sock** can be found at **/var/run/myipc.sock**.
-
-Enable and start service:
-
-```
+```text
+sudo apt install redis-server
 sudo systemctl daemon-reload
-sudo systemctl enable myps.service
-sudo systemctl start myps.service
+sudo systemctl enable redis.service
+sudo systemctl start redis.service
 ```
 
-Check status:
-
-```
-systemctl status myps.service
-● myps.service - PubSub service running on nodejs
-   Loaded: loaded (/etc/systemd/system/myps.service; enabled; vendor preset: disabled)
-   Active: active (running) since Wed 2018-09-12 13:51:54 MSK; 2min 49s ago
- Main PID: 31066 (node)
-    Tasks: 11 (limit: 4915)
-   Memory: 12.0M
-   CGroup: /system.slice/myps.service
-           └─31066 node /usr/bin/myps-broker
-
-Sep 12 13:51:54 pi systemd[1]: Started PubSub service running on nodejs.
-```
-
-Check if runtime directory was created and look inside it:
-
-```
-ls -hlatr /run
-.......
-drwxr-xr-x  7 root       root      160 Sep 12 13:21 udev
-drwxr-xr-x 27 root       root      640 Sep 12 13:51 .
-drwxrwxr-x  2 pi         lp         60 Sep 12 13:51 myps
-drwxr-xr-x 18 root       root      440 Sep 12 13:52 systemd
-```
-
-```
-ls -hlatr /run/myps
-total 0
-drwxr-xr-x 27 root       root 640 Sep 12 13:51 ..
-srwxr-xr-x  1 pi         lp     0 Sep 12 13:51 myipc.sock
-drwxrwxr-x  2 pi         lp    60 Sep 12 13:51 .
-```
-
-That's it. Proceed to next steps.
-
-## myps.logviewer
-
-All logging in bobaos.kit I implemented over myps service. Logs in real time can be viewed via util called **myps.logviewer**. Keep in mind, that it doesn't store any log data, just in real time.
-
-```
-sudo npm i -g myps.logviewer
-```
-
-```
-myps-logviewer -c bobaos_logs
-```
-
-If bobaos.pub package is not installed and started yet then there will be only one word in console output: **connected**.
+Check with `redis-cli` if it is running. If not, reboot and try testing with `redis-cli` again.
 
 ## bobaos.pub
 
@@ -157,17 +84,13 @@ Use following content for this file:
 ```
 [Unit]
 Description=PubSub service running on nodejs
-After=myps.service
+After=redis.service
 
 [Service]
 User=pi
 ExecStart=/usr/bin/env bobaos-pub
 Restart=on-failure
 RestartSec=10
-# and now working dir.
-# make sure it is located at `/run/${RuntimeDirectory}`
-# which is in this example myps
-WorkingDirectory=/run/myps
 
 [Install]
 WantedBy=multi-user.target
@@ -179,21 +102,6 @@ Reload systemd daemon, enable and start service.
 sudo systemctl daemon-reload
 sudo systemctl enable bobaos_pub.service
 sudo systemctl start bobaos_pub.service
-```
-
-If **myps.logviewer** package is running then it will log output into console:
-
-```
-bobaos_ipc:: info:: 20:22:07:: ["Connected to pubsub as 655590131100"]
-bobaos_ipc:: info:: 20:22:07:: ["Listening topic bobaos_req"]
-bobaos.pub:: info:: 20:22:07:: ["IPC ready"]
-bobaos_sdk:: info:: 20:22:07:: ["Serialport opened"]
-bobaos_sdk:: info:: 20:22:07:: ["Loading server items"]
-bobaos_sdk:: info:: 20:22:07:: ["Server items loaded"]
-bobaos_sdk:: info:: 20:22:07:: ["Loading datapoints. Setting indication to false"]
-bobaos_sdk:: info:: 20:22:08:: ["All datapoints [79] loaded. Return indications to true"]
-bobaos_sdk:: info:: 20:22:08:: ["Bobaos SDK ready. Emitting event"]
-bobaos.pub:: info:: 20:22:08:: ["Connected to BAOS. SDK ready."]
 ```
 
 Proceed to final steps.
@@ -228,7 +136,7 @@ bobaos> help
 
 :: BAOS services:
 ::> getbyte ( 1 2 3 | [1, 2, 3] )
-::  getitem ( * | ServerItem1 Item2... | [Item1, Item2, ..] )
+::  getitem ( * | 1 2 ..17 | [1, 2, ..17] )
 ::> progmode ( ? | true/false/1/0 )
 
 :: General:
@@ -241,18 +149,8 @@ ping: true
 bobaos>
 ```
 
-On every request bobaos.pub will log debug info that can be viewer in myps.logviewer:
 
-```
-bobaos.pub:: debug:: 20:22:57:: ["Incoming request: "]
-bobaos.pub:: debug:: 20:22:58:: ["method: ping"]
-bobaos.pub:: debug:: 20:22:58:: ["payload: null"]
-bobaos.pub:: debug:: 20:22:58:: ["response_channel: bobaos_res_26807"]
-```
-
-It is not necessary to view this logs but may be helpful in debugging.
-
-But let's return to **bobaos-tool**. Some command examples:
+Some command examples:
 
 * Programming mode
 
@@ -455,7 +353,7 @@ Then in script:
 ```js
 const BobaosSub = require('bobaos.sub');
  
-let my = BobaosSub({socketFile: "/var/run/myps/myipc.sock"});
+let my = BobaosSub();
  
 my.on("connect", _ => {
   console.log("connected to ipc, still not subscribed to channels");
@@ -493,6 +391,182 @@ my.on("sdk state", payload => {
 });
 ```
 
-There will be more info on API, but for now this is the end. The very end, my friend.
+There will be more info on API, but for now this is the end.
+
+## bobaos.ws
+
+This package is used to add WebSocket support
+
+### Installation
+
+```text
+sudo npm i -g bobaos.ws
+```
+
+You can run it:
+
+```text
+pi@pi:~$ bobaos-ws
+Starting bobaos.ws
+bobaos sdk: ready
+```
+
+Try to send from any websocket client following request on port 49190
+
+```json
+{"request_id": 42, "method": "ping", "payload": null}
+```
+
+If everything is ok, create service file `/etc/systemd/system/bobaos_ws.service:
+
+```text
+[Unit]
+Description=WebSocket server for bobaos.pub
+After=bobaos_pub.service
+
+[Service]
+User=pi
+ExecStart=/usr/bin/env bobaos-ws
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Reload systemd, start and enable daemon:
+
+```text
+sudo systemctl daemon-reload
+sudo systemctl start bobaos_ws.service
+sudo systemctl enable bobaos_ws.service
+```
+
+After that, to configure `bobaos.ws` edit `/usr/lib/node_modules/bobaos.ws/config.json` file.
+
+### Protocol
+
+#### Overview
+
+
+Published messages to websocket are serialized JSON objects, containing required fields `request_id, method, payload`.
+For broadcasted messages `request_id` field is not used.
+
+For outgoing requests:
+
+* `request_id` is used to receive response exactly to this request. If it is not defined then you will not receive response from server.
+* `method` is an API method.
+* `payload` depends on method. It may be datapoint id, array of ids, value, or null.
+
+Request:
+
+```json
+{
+  "request_id": 420,
+  "method": "get parameter byte",
+  "payload": [1,2,3,4]
+}
+```
+
+Response:
+
+```json
+{
+  "response_id":420,
+  "method":"success",
+  "payload":[1,3,5,7]
+}
+```
+
+#### API methods
+
+* Method: `ping`. Payload: `null`. 
+
+    Returns `true/false` depending on running state of bobaos.pub service.
+    
+* Method: `get sdk state`. Payload: `null`.
+    
+    Check if connected to BAOS.
+
+* Method: `reset`. 
+
+    Restart SDK. Reload datapoints/server items.
+
+* Method: `get description`. Payload: `null/id/[id1, .. idN]`.
+
+    Get description for datapoints with given ids. If payload is null then description for all datapoints will be returned.
+   
+* Method: `get value`. Payload: `id/[id1, .. idN]`.
+
+    Get value for datapoints with given ids.
+    
+* Method: `get stored value`. Payload: `id/[id1, .. idN]`.
+
+    Get value stored in bobaos.pub service. Do not send any data via UART.
+    
+* Method: `set value`. Payload: `{id: i, value: v}/[{id: i1, value: v1}, .. {id: iN, value: vN}]`
+
+    Set datapoints value and send to bus. Keep in mind that after successful request, new datapoint value will be broadcasted to all websocket clients, including sender.
+    
+* Method: `read value`. Payload: `id/[id1, .. idN]`.
+
+    Send read requests to KNX bus. Keep in mind that datapoint object should have active Update flag.
+    If reading was successful then datapoint value will be broadcasted.
+    
+* Method: `get server item`. Payload: `null/id/[id1, .. idN]`.
+
+    Get server items with given id/ids. To get all server items use `null` as a payload.
+    
+* Method: `set programming mode`. Payload: `1/0/true/false`.
+
+    Send to BAOS request to go into programming mode.
+    
+* Method: `get programming mode`. Payload: `null`.
+
+    Return current value of ProgrammingMode sever item.
+    
+* Method: `get parameter byte`. Payload: `id/[id1, .. idN]`.
+
+    Get parameter byte values for given ids.
+    
+#### Communication example
+
+```text
+{"request_id": 42, "method": "ping", "payload": null}
+{"response_id":42,"method":"success","payload":true}
+{"request_id": 42, "method": "get sdk state", "payload": null}
+{"response_id":42,"method":"success","payload":"ready"}
+{"request_id": 42, "method": "reset", "payload": null}
+{"method":"sdk state","payload":"stop"}
+{"method":"sdk state","payload":"ready"}
+{"response_id":42,"method":"success","payload":null}
+{"method":"datapoint value","payload":{"id":1,"value":23.6,"raw":"DJw="}}
+{"request_id": 42, "method": "get description", "payload": 1}
+{"response_id":42,"method":"success","payload":{"valid":"true","id":"1","length":"2","dpt":"dpt9","flag_priority":"low","flag_communication":"true","flag_read":"false","flag_write":"true","false":"false","flag_readOnInit":"false","flag_update":"true","flag_transmit":"true","value":"23.6","raw":"DJw="}}
+{"request_id": 42, "method": "get value", "payload": 1}
+{"response_id":42,"method":"success","payload":{"id":1,"value":23.6,"raw":"DJw="}}
+{"method":"datapoint value","payload":{"id":1,"value":23.6,"raw":"DJw="}}
+{"request_id": 42, "method": "get stored value", "payload": 1}
+{"response_id":42,"method":"success","payload":{"id":1,"value":23.6,"raw":"DJw="}}
+{"request_id": 42, "method": "set value", "payload": {"id": 103, "value": false}}
+{"method":"datapoint value","payload":[{"id":103,"value":false,"raw":"AA=="}]}
+{"response_id":42,"method":"success","payload":[{"id":103,"value":false,"raw":"AA=="}]}
+{"method":"datapoint value","payload":{"id":107,"value":false,"raw":"AA=="}}
+{"method":"datapoint value","payload":{"id":1,"value":23.6,"raw":"DJw="}}
+{"request_id": 42, "method": "set value", "payload": [{"id": 102, "value": true}, {"id": 103, "value": true}]}
+{"method":"datapoint value","payload":[{"id":102,"value":true,"raw":"AQ=="},{"id":103,"value":true,"raw":"AQ=="}]}
+{"response_id":42,"method":"success","payload":[{"id":102,"value":true,"raw":"AQ=="},{"id":103,"value":true,"raw":"AQ=="}]}
+{"method":"datapoint value","payload":{"id":107,"value":true,"raw":"AQ=="}}
+{"request_id": 42, "method": "read value", "payload": [1, 105, 106]}
+{"response_id":42,"method":"success","payload":null}
+{"method":"datapoint value","payload":{"id":1,"value":22.7,"raw":"DG8="}}
+{"method":"datapoint value","payload":{"id":105,"value":false,"raw":"AA=="}}
+{"method":"datapoint value","payload":{"id":106,"value":true,"raw":"AQ=="}}
+{"request_id": 42, "method": "get server item", "payload": [1, 2, 3]}
+{"response_id":42,"method":"success","payload":[{"id":1,"value":[0,0,197,8,0,3],"raw":"AADFCAAD"},{"id":2,"value":[16],"raw":"EA=="},{"id":3,"value":[18],"raw":"Eg=="}]}
+{"method":"datapoint value","payload":{"id":1,"value":22.9,"raw":"DHk="}}
+{"method":"datapoint value","payload":{"id":1,"value":23.2,"raw":"DIg="}}
+``` 
+
 
 Thank you for attention.
