@@ -7,35 +7,35 @@ Assuming that Raspberry Pi 3 is used.
 The Raspberry Pi 3 does not use the correct baud rate in Raspian out of the box, so kBerry will not work. To fix this, the overlay pi3-miniuart-bt-overlay must be activated.
 
 
-```
+```text
 sudo sh -c "echo dtoverlay=pi3-miniuart-bt >>/boot/config.txt"
 ```
 
 Open /boot/cmdline.txt and remove console=ttyAMA0,115200 from the file For Raspbian Jessie and newer the entry is console=serial0,115200
 
-```
+```text
 sudo nano /boot/cmdline.txt
 ```
 
 Make sure the user has the rights to access the ttyAMA0
 
-```
+```text
 # Check the group of the device
 ls -l /dev/ttyAMA0
 ```
 
-```
+```text
 crw-rw---- 1 root dialout 204, 64 Aug  4 11:33 /dev/ttyAMA0
 ```
 
-```
+```text
 # Add the user to the group seen above
 sudo usermod -a -G dialout pi
 ```
 
 After reboot proceed to next steps.
 
-```
+```text
 sudo reboot
 ```
 
@@ -67,7 +67,7 @@ Check with `redis-cli` if it is running. If not, reboot and try testing with `re
 
 Now, let install working service for BAOS sdk.
 
-```
+```text
 sudo npm i -g bobaos.pub --unsafe-perm
 ```
 
@@ -75,13 +75,13 @@ After that, edit config file located at **/usr/lib/node_modules/bobaos.pub/confi
 
 Create service file for systemd:
 
-```
+```text
 sudo nano /etc/systemd/system/bobaos_pub.service
 ```
 
 Use following content for this file:
 
-```
+```text
 [Unit]
 Description=PubSub service running on nodejs
 After=redis.service
@@ -98,7 +98,7 @@ WantedBy=multi-user.target
 
 Reload systemd daemon, enable and start service.
 
-```
+```text
 sudo systemctl daemon-reload
 sudo systemctl enable bobaos_pub.service
 sudo systemctl start bobaos_pub.service
@@ -110,13 +110,13 @@ Proceed to final steps.
 
 To control datapoint values from shell, bobaos.tool package is used.
 
-```
+```text
 sudo npm i -g bobaos.tool
 ```
 
 Run and ping sdk:
 
-```
+```text
 ~$ bobaos-tool
 hello, friend
 connecting to /var/run/myps/myipc.sock
@@ -158,7 +158,7 @@ First **cool feature**: there is no need to press programming button.
 
 To get/set programming mode following command is used:
 
-```
+```text
 bobaos> progmode ?
 BAOS module in programming mode: false
 bobaos> progmode 1
@@ -174,7 +174,7 @@ bobaos>
 
 * Get description for datapoints:
 
-```
+```text
 bobaos> description 1 2 3
 #1: length = 2, dpt = dpt9,  prio: low  flags: [C-WTU]
 #2: length = 1, dpt = dpt5,  prio: low  flags: [C-WTU]
@@ -184,13 +184,13 @@ bobaos>
 
 To list all datapoints, run:
 
-```
+```text
 bobaos> description *
 ```
 
 * Set value:
 
-```
+```text
 bobaos> set 2: 0
 20:27:06:239,    id: 2, value: 0, raw: [0]
 bobaos> set [2: 0, 3: 128, 999: "hello, friend"]
@@ -203,7 +203,7 @@ I would advice to use **multiple value sending** as a cool feature of BAOS proto
 
 * Get values:
 
-```
+```text
 bobaos> get 1 2 3 4 5 101 102 103
 20:38:02:250,    id: 1, value: 23, raw: [12,126]
 20:38:02:260,    id: 2, value: 0, raw: [0]
@@ -217,7 +217,7 @@ bobaos> get 1 2 3 4 5 101 102 103
 
 It is possible to get value stored in RPi's RAM:
 
-```
+```text
 bobaos> stored  1 2 3
 20:39:54:963,    id: 1, value: 22.9, raw: [12,121]
 20:39:54:974,    id: 2, value: 0, raw: [0]
@@ -228,7 +228,7 @@ This feature can help to get datapoint values and don't send a lot of requests o
 
 * Read values:
 
-```
+```text
 bobaos> read 1 2 3 105
 20:42:12:540,    id: 1, value: 22.9, raw: [12,121]
 20:42:12:642,    id: 105, value: false, raw: [0]
@@ -239,7 +239,7 @@ In this example only two datapoint indications came from bus. That happened beca
 
 If group objects configured right, but there is no read response, check update flag in BAOS ETS config.
 
-```
+```text
 bobaos> description 1 2 3 105
 #1: length = 2, dpt = dpt9,  prio: low  flags: [C-WTU]
 #2: length = 1, dpt = dpt5,  prio: low  flags: [C-WTU]
@@ -252,7 +252,7 @@ In this example, **U** flag assigned for all of these objects.
 
 * Monitoring datapoint values with colors:
 
-```
+```text
 bobaos> watch 1: green
 datapoint 1 value is now in green
 bobaos> watch [1: green, 105: underline]
@@ -274,35 +274,29 @@ This feature is helpful when there is a need to catch by eyes certain datapoints
 
 * Other BAOS services: server items, parameter bytes
 
-```
+```text
 bobaos> getitem *
-[ { id: 1, name: 'HardwareType', value: [ 0, 0, 197, 8, 0, 3 ] },
-  { id: 2, name: 'HardwareVersion', value: [ 16 ] },
-  { id: 3, name: 'FirmwareVersion', value: [ 18 ] },
-  { id: 4, name: 'KnxManufacturerCodeDev', value: [ 0, 197 ] },
-  { id: 5, name: 'KnxManufacturerCodeApp', value: [ 0, 197 ] },
-  { id: 6, name: 'EtsAppId', value: [ 8, 5 ] },
-  { id: 7, name: 'EtsAppId', value: [ 16 ] },
-  { id: 8,
-    name: 'SerialNumber',
-    value: [ 0, 197, 1, 1, 112, 182 ] },
-  { id: 9, name: 'TimeSinceReset', value: 417399370 },
-  { id: 10, name: 'BusConnectionState', value: true },
-  { id: 11, name: 'MaximumBufferSize', value: 250 },
-  { id: 12, name: 'DescStringLen', value: 0 },
-  { id: 13, name: 'BaudRate', value: 19200 },
-  { id: 14, name: 'CurrentBufferSize', value: 250 },
-  { id: 15, name: 'ProgrammingMode', value: false },
-  { id: 16, name: 'ProtocolVersion', value: 32 },
-  { id: 17, name: 'IndicationSending', value: true } ]
-bobaos> getitem BusConnectionState
-[ { id: 10, name: 'BusConnectionState', value: true } ]
+[ { id: '1', value: [ 0, 0, 197, 8, 0, 3 ], raw: 'AADFCAAD' },
+  { id: '2', value: [ 16 ], raw: 'EA==' },
+  { id: '3', value: [ 18 ], raw: 'Eg==' },
+  { id: '4', value: [ 0, 197 ], raw: 'AMU=' },
+  { id: '5', value: [ 0, 197 ], raw: 'AMU=' },
+  { id: '6', value: [ 8, 5 ], raw: 'CAU=' },
+  { id: '7', value: [ 16 ], raw: 'EA==' },
+  { id: '8', value: [ 0, 197, 1, 1, 118, 183 ], raw: 'AMUBAXa3' },
+  { id: '9', value: [ 42, 39, 107, 116 ], raw: 'KidrdA==' },
+  { id: '10', value: [ 1 ], raw: 'AQ==' },
+  { id: '11', value: [ 0, 250 ], raw: 'APo=' },
+  { id: '12', value: [ 0, 0 ], raw: 'AAA=' },
+  { id: '13', value: [ 1 ], raw: 'AQ==' },
+  { id: '14', value: [ 0, 250 ], raw: 'APo=' },
+  { id: '15', value: [ 0 ], raw: 'AA==' },
+  { id: '16', value: [ 32 ], raw: 'IA==' },
+  { id: '17', value: [ 1 ], raw: 'AQ==' } ]
 bobaos>
 ```
 
-Keep in mind, that server items only can be get by name parameter or asterisk for all items.
-
-```
+```text
 bobaos> getbyte 1 2 3
 [ 1, 3, 5 ]
 bobaos>
@@ -311,7 +305,7 @@ To get parameter byte values.
 
 * General commands: **ping, state, reset**
 
-```
+```text
 bobaos> ping
 ping: true
 bobaos> state
@@ -323,28 +317,11 @@ get sdk state: ready
 bobaos>
 ```
 
-After reset request, bobaos.pub logs into bobaos_logs channel following info:
-
-```
-bobaos.pub:: debug:: 21:01:30:: ["Incoming request: "]
-bobaos.pub:: debug:: 21:01:30:: ["method: reset"]
-bobaos.pub:: debug:: 21:01:30:: ["payload: null"]
-bobaos.pub:: debug:: 21:01:30:: ["response_channel: bobaos_res_16566"]
-bobaos.pub:: info:: 21:01:30:: ["SDK has stopped"]
-bobaos_sdk:: debug:: 21:01:30:: ["Resetting SDK."]
-bobaos_sdk:: info:: 21:01:30:: ["Loading server items"]
-bobaos_sdk:: info:: 21:01:30:: ["Server items loaded"]
-bobaos_sdk:: info:: 21:01:30:: ["Loading datapoints. Setting indication to false"]
-bobaos_sdk:: info:: 21:01:31:: ["All datapoints [79] loaded. Return indications to true"]
-bobaos_sdk:: info:: 21:01:32:: ["Bobaos SDK ready. Emitting event"]
-bobaos.pub:: info:: 21:01:32:: ["Connected to BAOS. SDK ready."]
-```
-
 ## bobaos.sub
 
 This library control BAOS datapoints from nodejs app.
 
-```
+```text
 npm i --save bobaos.sub
 ```
 
@@ -390,8 +367,6 @@ my.on("sdk state", payload => {
   console.log("broadcasted sdk state: ", payload);
 });
 ```
-
-There will be more info on API, but for now this is the end.
 
 ## bobaos.ws
 
@@ -567,6 +542,5 @@ Response:
 {"method":"datapoint value","payload":{"id":1,"value":22.9,"raw":"DHk="}}
 {"method":"datapoint value","payload":{"id":1,"value":23.2,"raw":"DIg="}}
 ``` 
-
 
 Thank you for attention.
