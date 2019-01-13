@@ -215,4 +215,6 @@ flutter packages get
 
 To run, debug and build use your favourite editor/ide, I prefer IntelliJ IDEA.
 
+I run it only on Android device, so, it will be great if somebody takes responsibility to compile it for iOS.
 
+Note: Android emulator won't discover any service due to isolated emulator network. Still, you are able to make direct connection.
