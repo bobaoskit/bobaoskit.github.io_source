@@ -150,3 +150,69 @@ Accessory instance emits event `control accessory value` event with `(method, pa
 ## Client
 
 Client application makes a dnssd discovery and  after resolving host creates WebSocket connection to given port. Then `get accessory info` with `null` payload is sent and response contains list of all accessories.
+
+To control accessory field/fields client sends `control accessory value` request with payload `{id: accId, control: {field: field1, value: value}/[{field: .. value: ..}]}/[{id: ...}, ...]`.
+
+## Installation
+
+Currently, no npm package is published.
+
+So, clone git repositories:
+
+```text
+git clone https://github.com/bobaoskit/bobaoskit.worker
+git clone https://github.com/bobaoskit/bobaoskit.accessory
+```
+
+Install dependencies for worker and run
+
+```text
+cd bobaoskit.worker
+npm install
+./bin/bobaos-kit.js
+```
+
+Install dependencies for bobaoskit.accessory
+
+```text
+cd bobaoskit.accessory
+npm install
+```
+Now, take a look at `bobaoskit.accessory/examples/` folder.
+
+You may be able to run radio player accessory scripted in `mpvsw.js`. Make sure you have `mpv` and latest version of `youtube-dl` installed. 
+
+Install dependencies for mpv client
+
+```text
+npm install mympvspawn
+npm install mympvclient
+```
+
+Now, start it with node
+
+```text
+nodejs ./examples/mpvsw.js
+```
+
+## Mobile application
+
+For mobile application flutter is used. It uses mdns plugin for dns service discovery, currently this plugin is not published, so there is git dependency in `pubspec.yaml`.
+
+Install flutter(I use v1.0.0), dart sdk(2.1.0), all sdk(Android/XCode) to compile app.
+
+Clone repository
+
+```text
+git clone https://github.com/shabunin/bobaflu
+```
+
+Install packages
+
+```text
+flutter packages get
+```
+
+To run, debug and build use your favourite editor/ide, I prefer IntelliJ IDEA.
+
+
