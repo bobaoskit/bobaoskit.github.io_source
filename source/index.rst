@@ -12,6 +12,7 @@ Welcome to bobaos's documentation!
 
    intro
    quickstart
+   bobaoskit
 
 Indices and tables
 ==================
