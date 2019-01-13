@@ -4,11 +4,11 @@
 
 Inspired by Apple HomeKit I was searching for android solution but couldn't find appropriate. To be able to work in LAN without cloud I started own project.
 
-So, bobaoskit is a simple implementation of accessory system without any complication. So, there is no such things like pairing, crypto, binary protocol implemented. It works with simple Websocket protocol to implement network communications. Only five websocket requests are implemented and four broadcasted events.
+So, bobaoskit is a simple implementation of accessory system without any complication. So, there is no such things like pairing, authorization, crypto, binary protocol implemented. It works with simple Websocket protocol to implement network communications. Only five websocket requests are implemented and four broadcasted events.
 
 Accessories only have `id`, `name`, `type`, `control`, `status` fields.
 
-For example, simple switch that works with `bobaos`:
+Following example shows how switch accessory can be implemented. It has only `state` both control and status field that reflects switch relay state.
 
 ```js
 const Bobaos = require("bobaos.sub");
@@ -78,3 +78,75 @@ const inTheEnd = async _ => {
 process.on('SIGINT', inTheEnd);
 process.on('SIGTERM', inTheEnd);
 ```
+
+## How it works
+
+### Accessory backend service
+
+First of all, there should be running instance of `bobaoskit.worker` on pc. 
+
+`bobaoskit.worker` script uses `redis` and `bee-queue` job manager to process incoming requests.
+There is possible requests as clear/add/remove accessory, get accessory info, get/update status value, control accessory value. Events are broadcasted over Redis Pub/Sub channel defined in `config.json`.
+
+`bobaoskit.worker` listens port defined in `config.json` for WebSocket connections. Websocket API exposes request methods like get accessory info, get status/control accessory value
+
+`bobaoskit.worker` uses `dnssd` module to advertise itself in local network. Advertised service name is defined in `config.json`.
+
+## Accessory SDK
+
+`bobaoskit.accessory` nodejs module is used to register and manage accessories. So, use it to create accessory instance, receive control commands, control your devices and update accessory state.
+
+Take a look at following code
+
+```js
+const BobaosKit = require("bobaoskit.accessory");
+
+// params:
+//   redis: "redis_url"/client object
+//   job_channel: "bobakit_job"
+//   broadcast_channel: "bobaoskit_bcast"
+// by default redis is undefined
+// channels are from comments above,
+// same as default in config.json
+const sdk = BobaosKit.Sdk();
+
+
+// sdk param is not required but 
+// if you want to add multiple accessories
+// it is better to create one sdk instance 
+// and use it for all accessories
+const accessory = BobaosKit.Accessory({
+  id: "accessory",
+  name: "Simple Switch",
+  type: "switch",
+  control: ["state"],
+  status: ["state"],
+  sdk: sdk
+});
+```
+Now, sdk has following methods that is used by accessory instance:
+
+  * ping()
+  * getGeneralInfo()
+  * clearAccessories()
+  * addAccessory(payload)
+  * removeAccessory(payload)
+  * getAccessoryInfo(payload)
+  * getStatusValue(payload)
+  * updateStatusValue(payload)
+  * controlAccessoryValue(payload)
+
+Also, sdk emits `broadcasted event` with `(method, payload)` as a params.
+
+`BobaosKit.Accessory(..)` creates object that represents accessory. It uses `sdk` to communicate via `bee-queue` with bobaoskit worker and creates own `bee-queue` instance to accept incoming requests. Exposed methods:
+
+  * getAccessoryInfo()
+  * getStatusValue(payload)
+  * updateStatusValue(payload)
+  * unregisterAccessory()
+
+Accessory instance emits event `control accessory value` event with `(method, payload)` params when request to control accessory value is received. So, listen for this event and process it.
+
+## Client
+
+Client application makes a dnssd discovery and  after resolving host creates WebSocket connection to given port. Then `get accessory info` with `null` payload is sent and response contains list of all accessories.
