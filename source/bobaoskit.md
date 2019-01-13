@@ -192,7 +192,7 @@ npm install mympvclient
 Now, start it with node
 
 ```text
-nodejs ./examples/mpvsw.js
+node ./examples/mpvsw.js
 ```
 
 ## Mobile application
