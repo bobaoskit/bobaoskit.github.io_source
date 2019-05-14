@@ -71,7 +71,23 @@ Now, let install working service for BAOS sdk.
 sudo npm i -g bobaos.pub --unsafe-perm
 ```
 
-After that, edit config file located at **/usr/lib/node_modules/bobaos.pub/config.json** and replace default **/dev/ttyS1** to **/dev/ttyAMA0**. 
+Start bobaos.pub
+
+```text
+~ > bobaos-pub
+
+  ()--()     hello, friend
+    \"/_     here comes bobaos
+     '  )    learn and enjoy
+       ~
+
+User config file does not exist
+Default congig file created at
+/home/pi/.config/bobaos/pub.json
+...
+```
+
+Default serialport to be opened is `/dev/ttyS1`. If you need other serialport, then close application(`Ctrl-C`) and replace default value in config file located at `~/.config/bobaos/pub.json`.
 
 Create service file for systemd:
 
@@ -191,12 +207,11 @@ bobaos> description *
 * Set value:
 
 ```text
-bobaos> set 2: 0
-20:27:06:239,    id: 2, value: 0, raw: [0]
-bobaos> set [2: 0, 3: 128, 999: "hello, friend"]
-20:28:48:586,    id: 2, value: 0, raw: [0]
-20:28:48:592,    id: 3, value: 128, raw: [128]
-20:28:48:593,    id: 999, value: "hello, friend, raw: [34,104,101,108,108,111,44,32,102,114,105,101,110,100]
+bobaos> set 2: 1
+20:27:06:239,    id: 2, value: true, raw: [AQ==]
+bobaos> set [2: 0, 26: "hello, friend"]
+23:41:05:171,    id: 2, value: false, raw: [AA==]
+23:41:05:171,    id: 26, value: hello, friend, raw: [aGVsbG8sIGZyaWVuZAA=]
 ```
 
 I would advice to use **multiple value sending** as a cool feature of BAOS protocol.
@@ -204,24 +219,24 @@ I would advice to use **multiple value sending** as a cool feature of BAOS proto
 * Get values:
 
 ```text
-bobaos> get 1 2 3 4 5 101 102 103
-20:38:02:250,    id: 1, value: 23, raw: [12,126]
-20:38:02:260,    id: 2, value: 0, raw: [0]
-20:38:02:268,    id: 3, value: 128, raw: [128]
-20:38:02:277,    id: 4, value: 0, raw: [0]
-20:38:02:286,    id: 5, value: 0, raw: [0]
-20:38:02:295,    id: 101, value: false, raw: [0]
-20:38:02:304,    id: 102, value: false, raw: [0]
-20:38:02:312,    id: 103, value: false, raw: [0]
+bobaos> get 1 2 3 11 26
+23:42:26:212,    id: 1, value: 21.7, raw: [DD0=]
+23:42:26:213,    id: 2, value: false, raw: [AA==]
+23:42:26:213,    id: 3, value: false, raw: [AA==]
+23:42:26:213,    id: 11, value: 0, raw: [AA==]
+23:42:26:214,    id: 26, value: hello, friend, raw: [aGVsbG8sIGZyaWVuZAA=]
 ```
 
-It is possible to get value stored in RPi's RAM:
+It is possible to get value stored in RAM:
 
 ```text
-bobaos> stored  1 2 3
-20:39:54:963,    id: 1, value: 22.9, raw: [12,121]
-20:39:54:974,    id: 2, value: 0, raw: [0]
-20:39:54:982,    id: 3, value: 128, raw: [128]
+bobaos> stored 1 2 3 11 26
+23:42:53:630,    id: 1, value: 21.7, raw: [DD0=]
+23:42:53:631,    id: 2, value: false, raw: [AA==]
+23:42:53:631,    id: 3, value: false, raw: [AA==]
+23:42:53:632,    id: 11, value: 0, raw: [AA==]
+23:42:53:632,    id: 26, value: hello, friend, raw: [aGVsbG8sIGZyaWVuZAA=]
+
 ```
 
 This feature can help to get datapoint values and don't send a lot of requests over UART.
@@ -255,22 +270,23 @@ In this example, **U** flag assigned for all of these objects.
 ```text
 bobaos> watch 1: green
 datapoint 1 value is now in green
-bobaos> watch [1: green, 105: underline]
-datapoint 1 value is now in green
-datapoint 105 value is now in underline
-bobaos> read 1 105
-20:50:18:077,    id: 1, value: 22.9, raw: [12,121]
-20:50:18:123,    id: 105, value: false, raw: [0]
-bobaos> unwatch 1 105
+bobaos> watch [1: hide, 2: cyan, 3: bgRed]
+datapoint 1 value is now in hide
+datapoint 2 value is now in cyan
+datapoint 3 value is now in bgRed
+bobaos> unwatch 1 2 3
 datapoint 1 value is now in default color
-datapoint 105 value is now in default color
-bobaos> read 1 105
-20:50:41:901,    id: 1, value: 23, raw: [12,126]
-20:50:41:944,    id: 105, value: false, raw: [0]
-bobaos>
+datapoint 2 value is now in default color
+datapoint 3 value is now in default color
 ```
 
 This feature is helpful when there is a need to catch by eyes certain datapoints from common output.
+
+Coloring is done by [colors](https://github.com/Marak/colors.js) package. So list of supported colors can be found on it's github/npm page.
+
+To hide datapoint use `watch 1: hide`/`watch 1: hidden` commands. To show again, apply watch command with color value differs from `hide/hidden` or use `unwatch`. 
+
+Please keep in mind that  bobaos.tool creates config file `~/.config/bobaos/tool.json` and stores color settings there.
 
 * Other BAOS services: server items, parameter bytes
 
@@ -368,6 +384,31 @@ my.on("sdk state", payload => {
 });
 ```
 
+For detailed documentation look **API** page.
+
+Following js script may be used as a simple template to start with:
+
+```js
+const Bobaos = require("bobaos.sub");
+
+const bobaos = Bobaos();
+
+bobaos.on("ready", _ => {
+  console.log("bobaos ready");
+});
+
+const processBaosValue = payload => {
+  if (Array.isArray(payload)) {
+    return payload.forEach(processBaosValue);
+  }
+
+  let { id, value, raw } = payload;
+  console.log(`hello, ${id}, ${value}, raw`);
+};
+
+bobaos.on("datapoint value", processBaosValue);
+```
+
 ## bobaos.ws
 
 This package is used to add WebSocket support
@@ -391,156 +432,3 @@ Try to send from any websocket client following request on port 49190
 ```json
 {"request_id": 42, "method": "ping", "payload": null}
 ```
-
-If everything is ok, create service file `/etc/systemd/system/bobaos_ws.service:
-
-```text
-[Unit]
-Description=WebSocket server for bobaos.pub
-After=bobaos_pub.service
-
-[Service]
-User=pi
-ExecStart=/usr/bin/env bobaos-ws
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Reload systemd, start and enable daemon:
-
-```text
-sudo systemctl daemon-reload
-sudo systemctl start bobaos_ws.service
-sudo systemctl enable bobaos_ws.service
-```
-
-After that, to configure `bobaos.ws` edit `/usr/lib/node_modules/bobaos.ws/config.json` file.
-
-### Protocol
-
-#### Overview
-
-
-Published messages to websocket are serialized JSON objects, containing required fields `request_id, method, payload`.
-For broadcasted messages `request_id` field is not used.
-
-For outgoing requests:
-
-* `request_id` is used to receive response exactly to this request. If it is not defined then you will not receive response from server.
-* `method` is an API method.
-* `payload` depends on method. It may be datapoint id, array of ids, value, or null.
-
-Request:
-
-```json
-{
-  "request_id": 420,
-  "method": "get parameter byte",
-  "payload": [1,2,3,4]
-}
-```
-
-Response:
-
-```json
-{
-  "response_id":420,
-  "method":"success",
-  "payload":[1,3,5,7]
-}
-```
-
-#### API methods
-
-* Method: `ping`. Payload: `null`. 
-
-    Returns `true/false` depending on running state of bobaos.pub service.
-    
-* Method: `get sdk state`. Payload: `null`.
-    
-    Check if connected to BAOS.
-
-* Method: `reset`. 
-
-    Restart SDK. Reload datapoints/server items.
-
-* Method: `get description`. Payload: `null/id/[id1, .. idN]`.
-
-    Get description for datapoints with given ids. If payload is null then description for all datapoints will be returned.
-   
-* Method: `get value`. Payload: `id/[id1, .. idN]`.
-
-    Get value for datapoints with given ids.
-    
-* Method: `get stored value`. Payload: `id/[id1, .. idN]`.
-
-    Get value stored in bobaos.pub service. Do not send any data via UART.
-    
-* Method: `set value`. Payload: `{id: i, value: v}/[{id: i1, value: v1}, .. {id: iN, value: vN}]`
-
-    Set datapoints value and send to bus. Keep in mind that after successful request, new datapoint value will be broadcasted to all websocket clients, including sender.
-    
-* Method: `read value`. Payload: `id/[id1, .. idN]`.
-
-    Send read requests to KNX bus. Keep in mind that datapoint object should have active Update flag.
-    If reading was successful then datapoint value will be broadcasted.
-    
-* Method: `get server item`. Payload: `null/id/[id1, .. idN]`.
-
-    Get server items with given id/ids. To get all server items use `null` as a payload.
-    
-* Method: `set programming mode`. Payload: `1/0/true/false`.
-
-    Send to BAOS request to go into programming mode.
-    
-* Method: `get programming mode`. Payload: `null`.
-
-    Return current value of ProgrammingMode sever item.
-    
-* Method: `get parameter byte`. Payload: `id/[id1, .. idN]`.
-
-    Get parameter byte values for given ids.
-    
-#### Communication example
-
-```text
-{"request_id": 42, "method": "ping", "payload": null}
-{"response_id":42,"method":"success","payload":true}
-{"request_id": 42, "method": "get sdk state", "payload": null}
-{"response_id":42,"method":"success","payload":"ready"}
-{"request_id": 42, "method": "reset", "payload": null}
-{"method":"sdk state","payload":"stop"}
-{"method":"sdk state","payload":"ready"}
-{"response_id":42,"method":"success","payload":null}
-{"method":"datapoint value","payload":{"id":1,"value":23.6,"raw":"DJw="}}
-{"request_id": 42, "method": "get description", "payload": 1}
-{"response_id":42,"method":"success","payload":{"valid":"true","id":"1","length":"2","dpt":"dpt9","flag_priority":"low","flag_communication":"true","flag_read":"false","flag_write":"true","false":"false","flag_readOnInit":"false","flag_update":"true","flag_transmit":"true","value":"23.6","raw":"DJw="}}
-{"request_id": 42, "method": "get value", "payload": 1}
-{"response_id":42,"method":"success","payload":{"id":1,"value":23.6,"raw":"DJw="}}
-{"method":"datapoint value","payload":{"id":1,"value":23.6,"raw":"DJw="}}
-{"request_id": 42, "method": "get stored value", "payload": 1}
-{"response_id":42,"method":"success","payload":{"id":1,"value":23.6,"raw":"DJw="}}
-{"request_id": 42, "method": "set value", "payload": {"id": 103, "value": false}}
-{"method":"datapoint value","payload":[{"id":103,"value":false,"raw":"AA=="}]}
-{"response_id":42,"method":"success","payload":[{"id":103,"value":false,"raw":"AA=="}]}
-{"method":"datapoint value","payload":{"id":107,"value":false,"raw":"AA=="}}
-{"method":"datapoint value","payload":{"id":1,"value":23.6,"raw":"DJw="}}
-{"request_id": 42, "method": "set value", "payload": [{"id": 102, "value": true}, {"id": 103, "value": true}]}
-{"method":"datapoint value","payload":[{"id":102,"value":true,"raw":"AQ=="},{"id":103,"value":true,"raw":"AQ=="}]}
-{"response_id":42,"method":"success","payload":[{"id":102,"value":true,"raw":"AQ=="},{"id":103,"value":true,"raw":"AQ=="}]}
-{"method":"datapoint value","payload":{"id":107,"value":true,"raw":"AQ=="}}
-{"request_id": 42, "method": "read value", "payload": [1, 105, 106]}
-{"response_id":42,"method":"success","payload":null}
-{"method":"datapoint value","payload":{"id":1,"value":22.7,"raw":"DG8="}}
-{"method":"datapoint value","payload":{"id":105,"value":false,"raw":"AA=="}}
-{"method":"datapoint value","payload":{"id":106,"value":true,"raw":"AQ=="}}
-{"request_id": 42, "method": "get server item", "payload": [1, 2, 3]}
-{"response_id":42,"method":"success","payload":[{"id":1,"value":[0,0,197,8,0,3],"raw":"AADFCAAD"},{"id":2,"value":[16],"raw":"EA=="},{"id":3,"value":[18],"raw":"Eg=="}]}
-{"method":"datapoint value","payload":{"id":1,"value":22.9,"raw":"DHk="}}
-{"method":"datapoint value","payload":{"id":1,"value":23.2,"raw":"DIg="}}
-``` 
-
-Thank you for attention.

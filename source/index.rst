@@ -12,7 +12,7 @@ Welcome to bobaos's documentation!
 
    intro
    quickstart
-   bobaoskit
+   api
 
 Indices and tables
 ==================
