@@ -16,7 +16,7 @@ If you are looking for great solution that will allow you to control your KNX da
 
 If you are looking for great solution to implement own devices with KNX bus connection then you do.
 
-If you are looking for KNXNet/IP router then you don't need it at all. Check [knx.js](https://bitbucket.org/ekarak/knx.js) project. I use it in my projects too.
+You can't transform your single-board computer with BAOS module into KNXNet/IP router with bobaos. For that purpose take a look at calimero-server project, but patching calimero-core and rebuilding is required.
 
 ## Credits
 
